@@ -44,16 +44,26 @@ class MyFrontEnd(FrontEnd):
     
         #spin cycle, rotate ccw by 1 degree
         if self.cycle == 0:
-            if self.robot.sonar_distance < 100: #distance in cm?
-                #make sure gripper is open
-                self.sparki.send_command(0,0,0,0,0,1)
-                time.sleep(4)
-                self.sparki.send_command(0,0,0,0,0,0)
+            if self.robot.sonar_distance < 50: #distance in cm?
+               
+                self.robot.lin_vel = 0
+                self.robot.ang_vel = math.pi/90
+                
+                #rotate a little more due to robot sonar seeing object before it is infront
+                left_speed, left_dir, right_speed, right_dir = self.robot.compute_motors()
+                self.sparki.send_command(left_speed, left_dir, right_speed, right_dir, 0, 1)
+                print("Sonar Distance: ", self.robot.sonar_distance)
 
+                #how to calculate this??
+                print("wait 17")
+                time.sleep(17)
+                self.sparki.send_command(0,0,0,0,0,0)
+                
                 #move to next cycle
                 self.cycle = 1
             else:
                 #spin
+                print("Sonar Distance: ", self.robot.sonar_distance)
                 self.robot.lin_vel = 0
                 self.robot.ang_vel = math.pi/90 #2 degree per sec?
 
@@ -72,14 +82,15 @@ class MyFrontEnd(FrontEnd):
             #save distance, set velocity and find wait time
             self.distance = self.robot.sonar_distance
             self.robot.lin_vel = 3.06 #80% power, 90% is 3.44
-            self.wait_time = self.distance / self.robot.lin_vel #wait time cm / (cm/s)
+            self.robot.ang_vel = 0
+            self.wait_time = (self.distance / self.robot.lin_vel) + 2 #wait time cm / (cm/s) + delay
 
             #send command to sparki
             left_speed, left_dir, right_speed, right_dir = self.robot.compute_motors()
             self.sparki.send_command(left_speed, left_dir, right_speed, right_dir)
             
             #wait for sparki to get there
-            print("Wait Time:  ",self.wait_time)
+            print("Wait Time:  ", self.wait_time)
             time.sleep(self.wait_time) #in secs
 
             #zero speed
@@ -102,6 +113,7 @@ class MyFrontEnd(FrontEnd):
         elif self.cycle == 2:
             #reverse speed that we used to get there
             self.robot.lin_vel = -3.06
+            self.robot.ang_vel = 0
             left_speed, left_dir, right_speed, right_dir = self.robot.compute_motors()
 
             #send command and wait the same amount of time
