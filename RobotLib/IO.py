@@ -50,7 +50,7 @@ class SparkiSerial:
         self.light_right = 0
         self.last_send_time = 0
         self.read_period = 0
-        self.min_send_period = 0.01
+        self.min_send_period = 0.00001
         self.should_stop = False
         self.any_message_received = False
 

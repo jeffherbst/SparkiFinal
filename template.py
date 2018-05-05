@@ -40,34 +40,29 @@ class MyFrontEnd(FrontEnd):
     
     def update(self,time_delta):
         # get sonar distance
-        if self.sparki.port == '':
-            # simulate rangefinder
-            T_sonar_map = self.robot.get_robot_map_transform() * self.robot.get_sonar_robot_transform()
-            self.robot.sonar_distance = self.omap.get_first_hit(T_sonar_map)
-        else:
-            # read rangefinder
-            self.robot.sonar_distance = self.sparki.dist
+        self.robot.sonar_distance = self.sparki.dist
     
         #spin cycle, rotate ccw by 1 degree
         if self.cycle == 0:
             if self.robot.sonar_distance < 100: #distance in cm?
                 #make sure gripper is open
                 self.sparki.send_command(0,0,0,0,0,1)
-                time.sleep(2)
+                time.sleep(4)
                 self.sparki.send_command(0,0,0,0,0,0)
 
                 #move to next cycle
                 self.cycle = 1
             else:
                 #spin
-                self.robot.ang_vel = math.pi/180 #1 degree per sec?
+                self.robot.lin_vel = 0
+                self.robot.ang_vel = math.pi/90 #2 degree per sec?
 
                 #find speed to send
                 left_speed, left_dir, right_speed, right_dir = self.robot.compute_motors()
                 self.sparki.send_command(left_speed, left_dir, right_speed, right_dir)
                 
-                #wait one sec
-                time.sleep(1)
+                #wait .5sec
+                time.sleep(.5)
 
                 #stop
                 self.sparki.send_command(0,0,0,0,0,0)
@@ -92,10 +87,10 @@ class MyFrontEnd(FrontEnd):
             left_speed, left_dir, right_speed, right_dir = self.robot.compute_motors()
             self.sparki.send_command(left_speed, left_dir, right_speed, right_dir)
             
-            #close grippers, wait 2 secs stop
+            #close grippers, wait 4 secs stop
             self.sparki.send_command(0,0,0,0,0,2)
-            print("Wait Time:  2")
-            time.sleep(2)
+            print("Wait Time:  4")
+            time.sleep(4)
             self.sparki.send_command(0,0,0,0,0,0)
           
             #move to next cycle
@@ -119,15 +114,15 @@ class MyFrontEnd(FrontEnd):
             
             #open gripper
             self.sparki.send_command(0,0,0,0,0,1)
-            time.sleep(2)
+            time.sleep(4)
 
             #stop gripper
             self.sparki.send_command(0,0,0,0,0,0)
 
+            self.cycle = 0
             #reset
             print("Remove Object, Waiting 10 secs")
             time.sleep(10)
-            self.cycle = 0
         
         else: #shouldn't get here, how did you do it
             print("Bad Programmer")
